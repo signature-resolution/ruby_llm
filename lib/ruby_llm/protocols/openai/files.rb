@@ -17,6 +17,10 @@ module RubyLLM
           { anchor: 'created_at', seconds: expires_in } if expires_in
         end
 
+        def multipart_payload(attachment, **fields)
+          fields.compact.merge(file: file_part(attachment))
+        end
+
         def parse_upload_response(data, attachment)
           parse_file_response(data, mime_type: file_content_type(attachment))
         end

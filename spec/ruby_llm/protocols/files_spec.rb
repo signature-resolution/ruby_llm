@@ -406,6 +406,20 @@ RSpec.describe RubyLLM::Protocols::Files do
       expect(protocol.find('file_123').filename).to eq('batch.jsonl')
     end
 
+    it 'sends purpose before file in upload multipart' do
+      payload = nil
+      allow(connection).to receive(:post) do |_path, body, **|
+        payload = body
+        Struct.new(:body).new({ 'id' => 'file_123', 'filename' => 'brief.md' })
+      end
+
+      protocol.upload(StringIO.new('content'), filename: 'brief.md', purpose: 'user_data')
+
+      expect(payload.keys).to eq(%i[purpose file])
+      expect(payload[:purpose]).to eq('user_data')
+      expect(payload[:file]).to be_a(Faraday::Multipart::FilePart)
+    end
+
     context 'when the provider reports no MIME type' do
       let(:response) { Struct.new(:body).new({ 'id' => 'file_123', 'filename' => 'ruby.txt' }) }
 
